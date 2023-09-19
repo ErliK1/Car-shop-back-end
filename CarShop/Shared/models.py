@@ -19,9 +19,15 @@ class User(AbstractUser):
 
 
 class Mechanic(models.Model):
+    class Meta:
+        db_table = 'shared_mechanic'
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    icon = models.ImageField()
+    icon = models.ImageField(upload_to='images')
 
 
 class BigUser(models.Model):
+    class Meta:
+        db_table = 'shared_big_user'
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
