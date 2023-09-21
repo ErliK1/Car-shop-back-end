@@ -21,12 +21,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 from Shared import urls as shared_urls
 from MechanicApp import urls as mechanic_urls
+from MachineParts import urls as machine_parts_urls
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include(shared_urls)),
     path('mechanic/', include(mechanic_urls)),
+    path('machineparts/', include(machine_parts_urls)),
+
 ]
 
 if settings.DEBUG:
