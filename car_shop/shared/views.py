@@ -20,6 +20,7 @@ class MechanicSignUpView(CreateAPIView):
 
     @transaction.atomic
     def post(self, request, *args, **kwargs):
+        print(self.request.user.check_password('erli1965'))
         serializer_var: MechanicSignUpSerializer = self.get_serializer(data=request.data)
         if serializer_var.is_valid():
             sm = serializer_var.save()
@@ -34,7 +35,7 @@ class MechanicListView(ListAPIView):
 class MechanicChangePasswordView(UpdateAPIView):
     queryset = Mechanic.objects.all()
     serializer_class = MechanicChangePasswordSerializer
-    permission_classes = MechanicPermission
+
 
     def get_object(self):
         try:
@@ -43,9 +44,11 @@ class MechanicChangePasswordView(UpdateAPIView):
             return None
 
     def update(self, request, *args, **kwargs):
-        mechanic_serializer = MechanicChangePasswordSerializer(self.get_object(), data=request.data)
+        if self.request.auth is None:
+            return Response({'NotFound': 'Not FOund'})
+        mechanic_serializer = MechanicChangePasswordSerializer(instance=self.get_object(), data=request.data)
         if mechanic_serializer.is_valid():
-            data = mechanic_serializer.save()
+            data = mechanic_serializer.update(self.get_object(), mechanic_serializer.validated_data)
             if isinstance(data, Mechanic):
                 return Response({'message': 'Success'}, status=status.HTTP_202_ACCEPTED)
             return Response(data, status=status.HTTP_400_BAD_REQUEST)
