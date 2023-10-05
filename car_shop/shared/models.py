@@ -13,3 +13,6 @@ class Mechanic(models.Model):
     phone_number = models.PositiveIntegerField(null=True)
     gender = models.CharField(choices=GENDER, max_length=10)
     icon = models.ImageField(upload_to='pics', null=True, blank=True)
+
+    def __str__(self):
+        return f'{self.user.first_name} {self.user.last_name}'
