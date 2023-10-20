@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.shortcuts import render
 from rest_framework import status
-from rest_framework.generics import ListCreateAPIView, ListAPIView, CreateAPIView
+from rest_framework.generics import ListCreateAPIView, ListAPIView, CreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -29,6 +29,12 @@ class CategoriesListCreateView(ListCreateAPIView):
 class MachinePartsListView(ListAPIView):
     queryset = MachinePart.objects.all()
     serializer_class = MachinePartSerializerGeneral
+
+    def get_queryset(self):
+        pk_of_type = self.kwargs.get('category')
+        wanted_machineparts = MachinePart.objects.filter(category=pk_of_type)
+        return wanted_machineparts
+
 
 
 class CreateMachineView(ListCreateAPIView):
@@ -59,3 +65,38 @@ class CreateMachineView(ListCreateAPIView):
             MachinePart.objects.create(owner=mechanic, **serializer.validated_data)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MachinePartRetrieveUpdateDestroy(RetrieveUpdateDestroyAPIView):
+    queryset = MachinePart.objects.all()
+    serializer_class = MachinePartCreateSerializer
+
+    def get_permissions(self):
+        if self.request.method in ['PUT', 'PATCH', 'DESTROY']:
+            return [IsAuthenticated(), MechanicPermission()]
+        return []
+
+    def get_object(self):
+        try:
+            return MachinePart.objects.get(pk=self.kwargs.get('pk'))
+        except Exception as e:
+            return None
+
+    def update(self, request, *args, **kwargs):
+        if 'id' in request.data:
+            request.data.pop('id')
+        try:
+            wanted_object = MachinePart.objects.get(pk=kwargs.get('pk'))
+        except Exception as e:
+            return Response({'message': 'ERROR! Object DNE'}, status=status.HTTP_404_NOT_FOUND)
+        serialized_data = self.get_serializer_class()(instance=wanted_object, data=request.data)
+        if serialized_data.is_valid():
+            serialized_data.save()
+            return Response(serialized_data.validated_data, status=status.HTTP_200_OK)
+        return Response(serialized_data.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+

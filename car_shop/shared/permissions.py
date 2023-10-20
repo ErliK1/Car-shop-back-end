@@ -1,4 +1,6 @@
 from rest_framework.permissions import BasePermission
+
+from machine_parts.models import MachinePart
 from .models import Mechanic
 
 class MechanicPermission(BasePermission):
@@ -8,7 +10,6 @@ class MechanicPermission(BasePermission):
             return True
         return False
 
-    def has_object_permission(self, request, view, obj):
-        return obj.id == Mechanic.objects.get(user=request.user)
-
+    def has_object_permission(self, request, view, obj: MachinePart):
+        return obj.owner.user == request.user
 
